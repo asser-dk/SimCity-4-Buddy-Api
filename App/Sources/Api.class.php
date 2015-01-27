@@ -37,10 +37,12 @@
             $mysql = new MySql($configuration);
             $mysqli = $mysql->Connect();
 
+            $fileRegister = new FileRegister($mysqli);
+
             try
             {
                 $controllers = array(
-
+                    new FileController($fileRegister)
                 );
 
                 $api = new Api($_SERVER, $controllers);
@@ -191,9 +193,9 @@
                 }
             }
 
-            $rawRequestBody = http_get_request_body();
+            $rawRequestBody = Request::GetPayload();
 
-            if($rawRequestBody !== null)
+            if($rawRequestBody !== null && $rawRequestBody !== '')
             {
                 $requestBody = json_decode($rawRequestBody, true);
 
@@ -202,7 +204,7 @@
                     throw new BadRequestException(GeneralError::InvalidJson, 'Request body must be valid JSON.');
                 }
 
-                $arguments['requestBody'] = $requestBody;
+                $arguments['payload'] = $requestBody;
             }
 
             return $arguments;
