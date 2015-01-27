@@ -27,7 +27,7 @@ class FileRegister
         $statement->execute();
         $statement->bind_result($id, $checksum, $filename, $pluginId);
 
-        $files = array();
+        $files = [];
 
         while($statement->fetch())
         {
@@ -36,6 +36,7 @@ class FileRegister
             $file->Checksum = $checksum;
             $file->Filename = $filename;
             $file->Plugin = $pluginId;
+            $files[] = $file;
         }
 
         $statement->close();
