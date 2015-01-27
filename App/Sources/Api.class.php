@@ -37,10 +37,12 @@
             $mysql = new MySql($configuration);
             $mysqli = $mysql->Connect();
 
+            $fileRegister = new FileRegister($mysqli);
+
             try
             {
                 $controllers = array(
-                    new FileController()
+                    new FileController($fileRegister)
                 );
 
                 $api = new Api($_SERVER, $controllers);
