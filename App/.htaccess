@@ -1,0 +1,13 @@
+ErrorDocument 404 /404.php
+
+<FilesMatch "configuration.ini">
+    Order allow,deny
+    Deny from all
+</FilesMatch>
+
+<Files .htaccess>
+    order deny,allow
+    deny from all
+</Files>
+
+FallbackResource /index.php
