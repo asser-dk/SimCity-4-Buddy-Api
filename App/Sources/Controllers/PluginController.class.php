@@ -1,6 +1,13 @@
 <?php
 class PluginController implements IController
 {
+    private $Register;
+
+    public function __construct(PluginRegister $register)
+    {
+        $this->Register = $register;
+    }
+
     public function RouteTable()
     {
         return array(
