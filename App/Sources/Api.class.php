@@ -40,7 +40,7 @@
             try
             {
                 $controllers = array(
-
+                    new FileController()
                 );
 
                 $api = new Api($_SERVER, $controllers);
