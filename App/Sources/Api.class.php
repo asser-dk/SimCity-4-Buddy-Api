@@ -38,11 +38,13 @@
             $mysqli = $mysql->Connect();
 
             $fileRegister = new FileRegister($mysqli);
+            $pluginRegister = new PluginRegister($mysqli);
 
             try
             {
                 $controllers = array(
-                    new FileController($fileRegister)
+                    new FileController($fileRegister),
+                    new PluginController($pluginRegister)
                 );
 
                 $api = new Api($_SERVER, $controllers);
