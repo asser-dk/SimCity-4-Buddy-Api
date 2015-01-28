@@ -48,7 +48,7 @@
             try
             {
                 $controllers = array(
-                    new FileController($fileRegister),
+                    new FileController($fileRegister, $pluginRegister),
                     new PluginController($pluginRegister)
                 );
 
