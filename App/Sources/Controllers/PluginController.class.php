@@ -8,6 +8,24 @@ class PluginController implements IController
         $this->Register = $register;
     }
 
+    public static function ThrowErrorOnNullOrEmptyString(string $value, string $message, int $errorCode = null)
+    {
+        self::ThrowErrorOnNull($value, $message, $errorCode);
+
+        if($value === '')
+        {
+            throw new BadRequestException($errorCode === null ? GeneralError::MissingParameter : $errorCode, $message);
+        }
+    }
+
+    public static function ThrowErrorOnNull($value, string $message, int $errorCode = null)
+    {
+        if($value === null)
+        {
+            throw new BadRequestException($errorCode === null ? GeneralError::MissingParameter : $errorCode, $message);
+        }
+    }
+
     public function RouteTable()
     {
         return array(
@@ -20,10 +38,17 @@ class PluginController implements IController
                 'regex' => '/^\/plugins\/[A-z0-9-]{36}$/',
                 'arguments' => array(
                     'pluginId' => array(
-                        'pattern' => '/^\/plugins\/([A-z0-9-]{36})$/',
+                        'pattern' => '/^\/plugins\/([A-z0-9-]{36})/',
                         'index' => 1
                     )
                 )
+            ),
+            'plugins' => array(
+                'methods' => array(
+                    'POST' => array('method' => 'PostPlugin', 'authentication' => 'PostPlugin')
+                ),
+                'controller' => $this,
+                'regex' => '/^\/plugins$/'
             )
         );
     }
@@ -34,9 +59,46 @@ class PluginController implements IController
         {
             case 'GetPlugin':
                 return $this->GetPlugin($arguments['pluginId']);
+            case 'PostPlugin':
+                return $this->PostPlugin($arguments['payload']);
             default:
                 throw new NotFoundException(GeneralError::ResourceNotFound, 'The requested resource was not found on this server.');
         }
+    }
+
+    public function PostPlugin(array $rawPlugin = null)
+    {
+        if($rawPlugin === null)
+        {
+            throw new BadRequestException(GeneralError::EmptyRequest, 'Plugin data not defined.');
+        }
+
+        self::ThrowErrorOnNullOrEmptyString($rawPlugin['Name'], 'Plugin name is missing');
+        self::ThrowErrorOnNullOrEmptyString($rawPlugin['Author']);
+        self::ThrowErrorOnNullOrEmptyString($rawPlugin['Link']);
+        self::ThrowErrorOnNullOrEmptyString($rawPlugin['Description']);
+
+        if(preg_match('/^(?:(?:https?|ftp):\/\/)(?:www\.)?[-a-z0-9+&@#\/%?=~_|!:,.;]*[-a-z0-9+&@#\/%=~_|]/i', $rawPlugin['Link']) == FALSE)
+        {
+            throw new BadRequestException(GeneralError::InvalidParameter, 'Link is not a valid URL.');
+        }
+
+        if($this->Register->IsUrlInUse($rawPlugin['Link']))
+        {
+            throw new BadRequestException(GeneralError::UniqueValueAlreadyTaken, 'There is already registered a plugin for that URL.');
+        }
+
+        $plugin = new Plugin();
+        $plugin->Id = Guid::NewGuid();
+        $plugin->Name = $rawPlugin['Name'];
+        $plugin->Link = $rawPlugin['Link'];
+        $plugin->Author = $rawPlugin['Author'];
+        $plugin->Description = $rawPlugin['Description'];
+
+        $this->Register->AddPlugin($plugin);
+
+        header('HTTP/1.1 201 Created');
+        return $plugin;
     }
 
     public function GetPlugin(string $pluginId)

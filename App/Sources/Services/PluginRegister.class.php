@@ -36,5 +36,26 @@ class PluginRegister
 
         return $plugin;
     }
+
+    public function AddPlugin(Plugin $plugin)
+    {
+        $statement = $this->MySql->prepare('
+            INSERT INTO `Plugin` (`Id`, `Name`, `Author`, `Link`, `Description`) VALUE (?, ?, ?, ?, ?)');
+
+        $statement->bind_param('sssss', $plugin->Id, $plugin->Name, $plugin->Author, $plugin->Link, $plugin->Description);
+        $statement->execute();
+    }
+
+    public function IsUrlInUse(string $link)
+    {
+        $statement = $this->MySql->prepare('SELECT `Plugin`.`Id` AS `id` FROM `Plugin` WHERE `Plugin`.`Link` = ?');
+        $statement->bind_param('s', $link);
+        $statement->execute();
+        $statement->bind_result($id);
+        $statement->fetch();
+        $statement->close();
+
+        return $id !== null;
+    }
 }
 ?>
