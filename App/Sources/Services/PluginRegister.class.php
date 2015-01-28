@@ -34,6 +34,11 @@ class PluginRegister
 
         $statement->close();
 
+        if($plugin->Id === null)
+        {
+            return null;
+        }
+
         return $plugin;
     }
 
