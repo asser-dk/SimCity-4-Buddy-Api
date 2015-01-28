@@ -36,5 +36,14 @@ class PluginRegister
 
         return $plugin;
     }
+
+    public function AddPlugin(Plugin $plugin)
+    {
+        $statement = $this->MySql->prepare('
+            INSERT INTO `Plugin` (`Id`, `Name`, `Author`, `Link`, `Description`) VALUE (?, ?, ?, ?, ?)');
+
+        $statement->bind_param('sssss', $plugin->Id, $plugin->Name, $plugin->Author, $plugin->Link, $plugin->Description);
+        $statement->execute();
+    }
 }
 ?>

@@ -13,5 +13,6 @@
         const InvalidParameter = 1010;
         const InvalidDate = 1011;
         const InvalidJson = 1012;
+        const EmptyRequest = 1013;
     }
 ?>
