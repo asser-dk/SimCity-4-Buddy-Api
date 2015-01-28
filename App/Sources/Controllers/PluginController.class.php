@@ -20,7 +20,7 @@ class PluginController implements IController
                 'regex' => '/^\/plugins\/[A-z0-9-]{36}$/',
                 'arguments' => array(
                     'pluginId' => array(
-                        'pattern' => '/^\/plugins\/([A-z0-9-]{36})$/',
+                        'pattern' => '/^\/plugins\/([A-z0-9-]{36})/',
                         'index' => 1
                     )
                 )
