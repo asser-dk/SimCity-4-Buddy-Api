@@ -1,29 +1,11 @@
 <?php
-class PluginController implements IController
+class PluginController extends BaseController
 {
     private $Register;
 
     public function __construct(PluginRegister $register)
     {
         $this->Register = $register;
-    }
-
-    public static function ThrowErrorOnNullOrEmptyString(string $value, string $message, int $errorCode = null)
-    {
-        self::ThrowErrorOnNull($value, $message, $errorCode);
-
-        if($value === '')
-        {
-            throw new BadRequestException($errorCode === null ? GeneralError::MissingParameter : $errorCode, $message);
-        }
-    }
-
-    public static function ThrowErrorOnNull($value, string $message, int $errorCode = null)
-    {
-        if($value === null)
-        {
-            throw new BadRequestException($errorCode === null ? GeneralError::MissingParameter : $errorCode, $message);
-        }
     }
 
     public function RouteTable()
@@ -103,10 +85,7 @@ class PluginController implements IController
 
     public function GetPlugin(string $pluginId)
     {
-        if(!Guid::IsValid($pluginId))
-        {
-            throw new BadRequestException(GeneralError::MalformedId, 'Plugin id is malformed.');
-        }
+        self::ThrowErrorOnInvalidGuid($pluginId);
 
         $plugin = $this->Register->GetPlugin($pluginId);
 
