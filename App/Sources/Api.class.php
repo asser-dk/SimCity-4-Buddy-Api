@@ -11,7 +11,9 @@
 
         private $ApiKey;
 
-        public function __construct(array $serverArguments, array $controllers)
+        private $ApiKeyService;
+
+        public function __construct(array $serverArguments, array $controllers, IApiKeyService $apiKeyService)
         {
             $uriParts = parse_url($serverArguments['REQUEST_URI']);
             $this->Uri = $serverArguments['REQUEST_URI'];
@@ -20,6 +22,7 @@
 
             $this->ApiKey = $this->ExtractApiKeyFromQuery($uriParts['query']);
             $this->Controllers = $controllers;
+            $this->ApiKeyService = $apiKeyService;
         }
 
         public static function Main()
@@ -37,6 +40,8 @@
             $mysql = new MySql($configuration);
             $mysqli = $mysql->Connect();
 
+            $apiKeyService = new ApiKeyService($mysqli);
+
             $fileRegister = new FileRegister($mysqli);
             $pluginRegister = new PluginRegister($mysqli);
 
@@ -47,7 +52,7 @@
                     new PluginController($pluginRegister)
                 );
 
-                $api = new Api($_SERVER, $controllers);
+                $api = new Api($_SERVER, $controllers, $apiKeyService);
 
                 $resource = $api->ProcessResource();
 
