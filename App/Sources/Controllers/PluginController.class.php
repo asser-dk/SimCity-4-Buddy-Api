@@ -83,6 +83,11 @@ class PluginController implements IController
             throw new BadRequestException(GeneralError::InvalidParameter, 'Link is not a valid URL.');
         }
 
+        if($this->Register->IsUrlInUse($rawPlugin['Link']))
+        {
+            throw new BadRequestException(GeneralError::UniqueValueAlreadyTaken, 'There is already registered a plugin for that URL.');
+        }
+
         $plugin = new Plugin();
         $plugin->Id = Guid::NewGuid();
         $plugin->Name = $rawPlugin['Name'];
