@@ -1,13 +1,16 @@
 <?php
-class FileController implements IController
+class FileController extends BaseController
 {
     const MaxFilesPerPage = 100;
 
     private $Register;
 
-    public function __construct(FileRegister $fileRegister)
+    private $PluginRegister;
+
+    public function __construct(FileRegister $fileRegister, PluginRegister $pluginRegister)
     {
         $this->Register = $fileRegister;
+        $this->PluginRegister = $pluginRegister;
     }
 
     public function RouteTable()
@@ -21,6 +24,19 @@ class FileController implements IController
                 'controller' => $this,
                 'documentation' => array('/files' => 'Lists all files known to the server.'),
                 'arguments' => PaginationHelper::GetRoutePaginationArguments()
+            ),
+            'postFilesForPlugin' => array(
+                'methods' => array(
+                    'POST' => array('method' => 'PostFilesForPlugin', 'authentication' => 'PostFiles')
+                ),
+                'controller' => $this,
+                'regex' => '/^\/plugins\/[A-z0-9-]{36}\/files$/',
+                'arguments' => array(
+                    'pluginId' => array(
+                        'pattern' => '/^\/plugins\/([A-z0-9-]{36})/',
+                        'index' => 1
+                    )
+                )
             )
         );
     }
@@ -31,9 +47,55 @@ class FileController implements IController
         {
             case 'GetAllFiles':
                 return $this->GetAllFiles((int)$arguments['page'], (int)$arguments['perPage'], $arguments['orderBy']);
+            case 'PostFilesForPlugin':
+                return $this->PostFilesForPlugin($arguments['pluginId'], $arguments['payload']);
             default:
                 throw new NotFoundException(GeneralError::ResourceNotFound, 'The requested resource was not found on this server.');
         }
+    }
+
+    public function PostFilesForPlugin(string $pluginId, array $rawFiles = null)
+    {
+        self::ThrowErrorOnInvalidGuid($pluginId, 'Plugin id is malformed.');
+
+        $plugin = $this->PluginRegister->GetPlugin($pluginId);
+
+        if($plugin === null)
+        {
+            throw new NotFoundException(GeneralError::ResourceNotFound, 'No plugin with the id ' . $pluginId . ' found.');
+        }
+
+        if($rawFiles === null)
+        {
+            throw new BadRequestException(GeneralError::EmptyRequest, 'Files data not defined.');
+        }
+
+        if(!is_array($rawFiles))
+        {
+            throw new BadRequestException(GeneralError::PayloadMalformed, 'Files JSON is malformed.');
+        }
+
+        foreach($rawFiles as $rawFile)
+        {
+            self::ThrowErrorOnNullOrEmptyString($rawFile['Checksum'], 'Checksum is missing.');
+            self::ThrowErrorOnNullOrEmptyString($rawFile['Filename'], 'Filename is missing.');
+
+            if(preg_match('/.+\..+/', $rawFile['Filename']) === FALSE)
+            {
+                throw new BadRequestException(GeneralError::InvalidParameter, 'Filename does not contain an extension.');
+            }
+
+            $file = new File();
+            $file->Id = Guid::NewGuid();
+            $file->Checksum = $rawFile['Checksum'];
+            $file->Filename = $rawFile['Filename'];
+            $file->Plugin = $pluginId;
+
+            $this->Register->AddFile($file);
+        }
+
+        header('HTTP/1.1 201 Created');
+        return $plugin;
     }
 
     public function GetAllFiles(integer $page, integer $perPage, string $orderBy)

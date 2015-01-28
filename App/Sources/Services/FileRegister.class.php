@@ -43,5 +43,13 @@ class FileRegister
 
         return $files;
     }
+
+    public function AddFile(File $file)
+    {
+        $statement = $this->MySql->prepare('
+            INSERT INTO `File` (`Id`, `Checksum`, `Filename`, `Plugin`) VALUE (?, ?, ?, ?)');
+        $statement->bind_param('ssss', $file->Id, $file->Checksum, $file->Filename, $file->Plugin);
+        $statement->execute();
+    }
 }
 ?>

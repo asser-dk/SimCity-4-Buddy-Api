@@ -14,5 +14,6 @@
         const InvalidDate = 1011;
         const InvalidJson = 1012;
         const EmptyRequest = 1013;
+        const PayloadMalformed = 1014;
     }
 ?>
