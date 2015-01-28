@@ -85,7 +85,7 @@ class PluginController implements IController
 
         if($this->Register->IsUrlInUse($rawPlugin['Link']))
         {
-            throw new BadRequestException(GeneralError::UniqueValueAlreadyTaken, 'There is already registered a plugin for that URL.');
+            throw new BadRequestException(GeneralError::UniqueValueAlreadyTaken, 'There is already a plugin registered for this URL.');
         }
 
         $plugin = new Plugin();
