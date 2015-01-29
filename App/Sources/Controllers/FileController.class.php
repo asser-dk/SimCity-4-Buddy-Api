@@ -205,9 +205,9 @@ class FileController extends BaseController
         PaginationHelper::ValidateAndSetPage($page);
         PaginationHelper::ValidateAndSetPerPage($perPage, self::MaxFilesPerPage);
 
-        $map = array(
+        $map = [
             'filename' => '`File`.`Filename`'
-        );
+        ];
 
         $orderByString = PaginationHelper::ValidateAndGenerateOrderByString($orderBy, $map, 'filename');
 
