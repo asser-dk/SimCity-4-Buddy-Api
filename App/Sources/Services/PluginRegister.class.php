@@ -86,5 +86,41 @@ class PluginRegister
 
         return $plugin;
     }
+
+    public function GetPlugins($page, $perPage, $orderByString)
+    {
+        $offset = PaginationHelper::CalculateOffset($page, $perPage);
+
+        $statementString = '
+            SELECT
+                `Plugin`.`Id` AS `id`,
+                `Plugin`.`Name` AS `name`,
+                `Plugin`.`Author` AS `author`,
+                `Plugin`.`Description` AS `description`,
+                `Plugin`.`Link` AS `link`
+            FROM `Plugin`
+            ORDER BY ' . $orderByString . '
+            LIMIT ?, ?';
+        $statement = $this->MySql->prepare($statementString);
+        $statement->bind_param('ii',$offset, $perPage);
+        $statement->execute();
+        $statement->bind_result($id, $name, $author, $description, $link);
+
+        $plugins = [];
+        while($statement->fetch())
+        {
+            $plugin = new Plugin();
+            $plugin->Id = $id;
+            $plugin->Name = $name;
+            $plugin->Author = $author;
+            $plugin->Description = $description;
+            $plugin->Link = $link;
+            $plugins[] = $plugin;
+        }
+
+        $statement->close();
+
+        return $plugins;
+    }
 }
 ?>
