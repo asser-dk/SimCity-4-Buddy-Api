@@ -1,6 +1,8 @@
 <?php
 class PluginController extends BaseController
 {
+    const MaxPluginsPerPage = 100;
+
     private $Register;
 
     public function __construct(PluginRegister $register)
@@ -10,30 +12,33 @@ class PluginController extends BaseController
 
     public function RouteTable()
     {
-        return array(
-            'plugin' => array(
-                'methods' => array(
-                    'GET' => array('method' => 'GetPlugin'),
-                    'PUT' => array('method' => 'PutPlugin', 'authentication' => 'PutPlugin')
-                ),
+        return [
+            'plugin' => [
+                'methods' => [
+                    'GET' => ['method' => 'GetPlugin'],
+                    'PUT' => ['method' => 'PutPlugin', 'authentication' => 'PutPlugin']
+                ],
                 'controller' => $this,
-                'documentation' => array('/plugins/{pluginId]' => 'Get info on a specific plugin'),
+                'documentation' => ['/plugins/{pluginId]' => 'Get info on a specific plugin'],
                 'regex' => '/^\/plugins\/[A-z0-9-]{36}$/',
-                'arguments' => array(
-                    'pluginId' => array(
+                'arguments' => [
+                    'pluginId' => [
                         'pattern' => '/^\/plugins\/([A-z0-9-]{36})/',
                         'index' => 1
-                    )
-                )
-            ),
-            'plugins' => array(
-                'methods' => array(
-                    'POST' => array('method' => 'PostPlugin', 'authentication' => 'PostPlugin')
-                ),
+                    ]
+                ]
+            ],
+            'plugins' => [
+                'methods' => [
+                    'POST' => ['method' => 'PostPlugin', 'authentication' => 'PostPlugin'],
+                    'GET' => ['method' => 'GetPlugins']
+                ],
                 'controller' => $this,
+                'documentation' => ['/plugins' => 'Lists all plugins'],
+                'arguments' => PaginationHelper::GetRoutePaginationArguments(),
                 'regex' => '/^\/plugins$/'
-            )
-        );
+            ]
+        ];
     }
 
     public function ProcessRequest(string $memberName, array $arguments = null)
@@ -46,9 +51,35 @@ class PluginController extends BaseController
                 return $this->PostPlugin($arguments['payload']);
             case 'PutPlugin':
                 return $this->PutPlugin($arguments['pluginId'], $arguments['payload']);
+            case 'GetPlugins':
+                return $this->GetPlugins((int)$arguments['page'], (int)$arguments['perPage'], $arguments['orderBy']);
             default:
                 throw new NotFoundException(GeneralError::ResourceNotFound, 'The requested resource was not found on this server.');
         }
+    }
+
+    public function GetPlugins(integer $page, integer $perPage, string $orderBy)
+    {
+        PaginationHelper::ValidateAndSetPage($page);
+        PaginationHelper::ValidateAndSetPerPage($perPage, self::MaxPluginsPerPage);
+
+        $map = [
+            'name' => '`Plugin`.`Name`',
+            'auithor' => '`Plugin`.`Author`'];
+
+        $orderByString = PaginationHelper::ValidateAndGenerateOrderByString($orderBy, $map, 'name');
+
+        $plugins = $this->Register->GetPlugins($page, $perPage, $orderByString);
+
+        if(count($plugins) > 0)
+        {
+            header('HTTP/1.1 200 OK');
+        }else
+        {
+            header('HTTP/1.1 404 Not Found');
+        }
+
+        return $plugins;
     }
 
     public function PutPlugin(string $pluginId, array $rawPlugin = null)
