@@ -1,7 +1,7 @@
 <?php
 abstract class BaseController implements IController
 {
-    public static function ThrowErrorOnNullOrEmptyString(string $value, string $message, int $errorCode = null)
+    public static function ThrowErrorOnNullOrEmptyString(string $value, string $message, integer $errorCode = null)
     {
         self::ThrowErrorOnNull($value, $message, $errorCode);
 
@@ -11,7 +11,7 @@ abstract class BaseController implements IController
         }
     }
 
-    public static function ThrowErrorOnNull($value, string $message, int $errorCode = null)
+    public static function ThrowErrorOnNull($value, string $message, integer $errorCode = null)
     {
         if($value === null)
         {
@@ -24,6 +24,19 @@ abstract class BaseController implements IController
         if(!Guid::IsValid($guid))
         {
             throw new BadRequestException(GeneralError::MalformedId, $message);
+        }
+    }
+
+    public static function ThrowErrorOnEmptyPayload(array $payload = null, string $message)
+    {
+        if($payload === null)
+        {
+            throw new BadRequestException(GeneralError::EmptyRequest, $message);
+        }
+
+        if(!is_array($payload))
+        {
+            throw new BadRequestException(GeneralError::PayloadMalformed, $message);
         }
     }
 }

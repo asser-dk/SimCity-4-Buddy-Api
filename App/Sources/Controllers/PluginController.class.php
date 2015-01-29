@@ -50,10 +50,7 @@ class PluginController extends BaseController
 
     public function PostPlugin(array $rawPlugin = null)
     {
-        if($rawPlugin === null)
-        {
-            throw new BadRequestException(GeneralError::EmptyRequest, 'Plugin data not defined.');
-        }
+        self::ThrowErrorOnEmptyPayload($rawPlugin);
 
         self::ThrowErrorOnNullOrEmptyString($rawPlugin['Name'], 'Plugin name is missing');
         self::ThrowErrorOnNullOrEmptyString($rawPlugin['Author']);

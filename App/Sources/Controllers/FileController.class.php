@@ -65,15 +65,7 @@ class FileController extends BaseController
             throw new NotFoundException(GeneralError::ResourceNotFound, 'No plugin with the id ' . $pluginId . ' found.');
         }
 
-        if($rawFiles === null)
-        {
-            throw new BadRequestException(GeneralError::EmptyRequest, 'Files data not defined.');
-        }
-
-        if(!is_array($rawFiles))
-        {
-            throw new BadRequestException(GeneralError::PayloadMalformed, 'Files JSON is malformed.');
-        }
+        self::ThrowErrorOnEmptyPayload($rawFiles, 'Request payload is malformed.');
 
         foreach($rawFiles as $rawFile)
         {
