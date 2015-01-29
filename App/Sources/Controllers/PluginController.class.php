@@ -53,9 +53,9 @@ class PluginController extends BaseController
         self::ThrowErrorOnEmptyPayload($rawPlugin);
 
         self::ThrowErrorOnNullOrEmptyString($rawPlugin['Name'], 'Plugin name is missing');
-        self::ThrowErrorOnNullOrEmptyString($rawPlugin['Author']);
-        self::ThrowErrorOnNullOrEmptyString($rawPlugin['Link']);
-        self::ThrowErrorOnNullOrEmptyString($rawPlugin['Description']);
+        self::ThrowErrorOnNullOrEmptyString($rawPlugin['Author'], 'Plugin author is missing');
+        self::ThrowErrorOnNullOrEmptyString($rawPlugin['Link'], 'Plugin link is missing');
+        self::ThrowErrorOnNullOrEmptyString($rawPlugin['Description'], 'Plugin description is missing.');
 
         if(preg_match('/^(?:(?:https?|ftp):\/\/)(?:www\.)?[-a-z0-9+&@#\/%?=~_|!:,.;]*[-a-z0-9+&@#\/%=~_|]/i', $rawPlugin['Link']) == FALSE)
         {
@@ -82,7 +82,7 @@ class PluginController extends BaseController
 
     public function GetPlugin(string $pluginId)
     {
-        self::ThrowErrorOnInvalidGuid($pluginId);
+        self::ThrowErrorOnInvalidGuid($pluginId, 'Plugin id is malformed.');
 
         $plugin = $this->Register->GetPlugin($pluginId);
 
