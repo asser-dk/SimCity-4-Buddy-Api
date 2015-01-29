@@ -13,7 +13,8 @@ class PluginController extends BaseController
         return array(
             'plugin' => array(
                 'methods' => array(
-                    'GET' => array('method' => 'GetPlugin')
+                    'GET' => array('method' => 'GetPlugin'),
+                    'PUT' => array('method' => 'PutPlugin', 'authentication' => 'PutPlugin')
                 ),
                 'controller' => $this,
                 'documentation' => array('/plugins/{pluginId]' => 'Get info on a specific plugin'),
@@ -43,9 +44,52 @@ class PluginController extends BaseController
                 return $this->GetPlugin($arguments['pluginId']);
             case 'PostPlugin':
                 return $this->PostPlugin($arguments['payload']);
+            case 'PutPlugin':
+                return $this->PutPlugin($arguments['pluginId'], $arguments['payload']);
             default:
                 throw new NotFoundException(GeneralError::ResourceNotFound, 'The requested resource was not found on this server.');
         }
+    }
+
+    public function PutPlugin(string $pluginId, array $rawPlugin = null)
+    {
+        self::ThrowErrorOnInvalidGuid($pluginId, 'Plugin id is malformed.');
+
+        $oldPlugin = $this->Register->GetPlugin($pluginId);
+
+        if($oldPlugin === null)
+        {
+            throw new NotFoundException(GeneralError::ResourceNotFound, 'No plugin with the id ' . $pluginId . ' found.');
+        }
+
+        self::ThrowErrorOnEmptyPayload($rawPlugin, 'Request payload is malformed.');
+
+        self::ThrowErrorOnNullOrEmptyString($rawPlugin['Name'], 'Plugin name is missing');
+        self::ThrowErrorOnNullOrEmptyString($rawPlugin['Author'], 'Plugin author is missing');
+        self::ThrowErrorOnNullOrEmptyString($rawPlugin['Link'], 'Plugin link is missing');
+        self::ThrowErrorOnNullOrEmptyString($rawPlugin['Description'], 'Plugin description is missing.');
+
+        if(preg_match('/^(?:(?:https?|ftp):\/\/)(?:www\.)?[-a-z0-9+&@#\/%?=~_|!:,.;]*[-a-z0-9+&@#\/%=~_|]/i', $rawPlugin['Link']) == FALSE)
+        {
+            throw new BadRequestException(GeneralError::InvalidParameter, 'Link is not a valid URL.');
+        }
+
+        if($this->Register->IsUrlInUse($rawPlugin['Link'], $pluginId))
+        {
+            throw new BadRequestException(GeneralError::UniqueValueAlreadyTaken, 'There is already a plugin registered for this URL.');
+        }
+
+        $plugin = new Plugin();
+        $plugin->Id = $pluginId;
+        $plugin->Name = $rawPlugin['Name'];
+        $plugin->Author = $rawPlugin['Author'];
+        $plugin->Description = $rawPlugin['Description'];
+        $plugin->Link = $rawPlugin['Link'];
+
+        $updatedPlugin = $this->Register->UpdatePlugin($plugin);
+
+        header('HTTP/1.1 200 OK');
+        return $updatedPlugin;
     }
 
     public function PostPlugin(array $rawPlugin = null)

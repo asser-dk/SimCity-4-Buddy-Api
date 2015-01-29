@@ -51,16 +51,40 @@ class PluginRegister
         $statement->execute();
     }
 
-    public function IsUrlInUse(string $link)
+    public function IsUrlInUse(string $link, $existingPluginId = null)
     {
-        $statement = $this->MySql->prepare('SELECT `Plugin`.`Id` AS `id` FROM `Plugin` WHERE `Plugin`.`Link` = ?');
-        $statement->bind_param('s', $link);
+        if ($existingPluginId == null)
+        {
+            $statement = $this->MySql->prepare('SELECT `Plugin`.`Id` AS `id` FROM `Plugin` WHERE `Plugin`.`Link` = ?');
+            $statement->bind_param('s', $link);
+        }else{
+            $statement = $this->MySql->prepare('SELECT `Plugin`.`Id` AS `id` FROM `Plugin` WHERE `Plugin`.`Link` = ? AND `Plugin`.`Id` != ?');
+            $statement->bind_param('ss', $link, $existingPluginId);
+        }
+
         $statement->execute();
         $statement->bind_result($id);
         $statement->fetch();
         $statement->close();
 
         return $id !== null;
+    }
+
+    public function UpdatePlugin(Plugin $plugin)
+    {
+        $statement = $this->MySql->prepare('
+            UPDATE `Plugin`
+            SET
+            `Plugin`.`Name` = ?,
+            `Plugin`.`Author` = ?,
+            `Plugin`.`Description` = ?,
+            `Plugin`.Link = ?
+            WHERE `Plugin`.`Id` = ?');
+        $statement->bind_param('sssss', $plugin->Name, $plugin->Author, $plugin->Description,  $plugin->Link, $plugin->Id);
+        $statement->execute();
+        $statement->close();
+
+        return $plugin;
     }
 }
 ?>
