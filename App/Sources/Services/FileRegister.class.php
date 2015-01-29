@@ -51,6 +51,23 @@ class FileRegister
         $statement->bind_param('ssss', $file->Id, $file->Checksum, $file->Filename, $file->Plugin);
         $statement->execute();
     }
+
+    public function HasFiles(string $pluginId)
+    {
+        $statement = $this->MySql->prepare('
+            SELECT `File`.`Id` AS `id`
+            FROM `File`
+            WHERE `File`.`Plugin` = ?
+            LIMIT 1');
+        $statement->bind_param('s', $pluginId);
+        $statement->execute();
+        $statement->bind_result($id);
+        $statement->fetch();
+        $statement->close();
+
+        return $id !== null;
+    }
+
     public function GetFilesForPlugin(string $pluginId)
     {
         $statement = $this->MySql->prepare('

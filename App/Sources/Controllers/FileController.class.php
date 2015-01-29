@@ -153,6 +153,11 @@ class FileController extends BaseController
 
         self::ThrowErrorOnEmptyPayload($rawFiles, 'Request payload is malformed.');
 
+        if($this->Register->HasFiles($pluginId))
+        {
+            throw new BadRequestException(GeneralError::ResourceAlreadyExists, 'There are already files defined for this plugin. Use PUT to update.');
+        }
+
         foreach($rawFiles as $rawFile)
         {
             self::ThrowErrorOnNullOrEmptyString($rawFile['Checksum'], 'Checksum is missing.');
