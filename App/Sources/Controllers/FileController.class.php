@@ -29,8 +29,10 @@ class FileController extends BaseController
                 'methods' => array(
                     'POST' => array('method' => 'PostFilesForPlugin', 'authentication' => 'PostFiles'),
                     'PUT' => array('method' => 'PutFilesForPlugin', 'authentication' => 'PutFiles'),
+                    'GET' => array('method' => 'GetFilesForPlugin')
                 ),
                 'controller' => $this,
+                'documentation' => array('/plugins/{pluginId}/files' => 'Lists all files for a specific plugin.'),
                 'regex' => '/^\/plugins\/[A-z0-9-]{36}\/files$/',
                 'arguments' => array(
                     'pluginId' => array(
@@ -52,9 +54,26 @@ class FileController extends BaseController
                 return $this->PostFilesForPlugin($arguments['pluginId'], $arguments['payload']);
             case 'PutFilesForPlugin':
                 return $this->PutFilesForPluigin($arguments['pluginId'], $arguments['payload']);
+            case 'GetFilesForPlugin':
+                return $this->GetFilesForPlugin($arguments['pluginId']);
             default:
                 throw new NotFoundException(GeneralError::ResourceNotFound, 'The requested resource was not found on this server.');
         }
+    }
+
+    public function GetFilesForPlugin(string $pluginId)
+    {
+        self::ThrowErrorOnInvalidGuid($pluginId, 'Plugin id is malformed.');
+
+        $plugin = $this->PluginRegister->GetPlugin($pluginId);
+
+        if($plugin === null)
+        {
+            throw new NotFoundException(GeneralError::ResourceNotFound, 'No plugin with the id '. $pluginId . ' found.');
+        }
+
+        header('HTTP/1.1 200 OK');
+        return $this->Register->GetFilesForPlugin($pluginId);
     }
 
     private function PutFilesForPluigin(string $pluginId, array $payload = null)
