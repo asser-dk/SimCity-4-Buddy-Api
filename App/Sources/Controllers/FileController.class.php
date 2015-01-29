@@ -103,17 +103,19 @@ class FileController extends BaseController
             }
 
             $file = new File();
+            $id = strtoupper($rawFile['Id']);
+
             if($rawFile['Id'] !== null)
             {
-                self::ThrowErrorOnInvalidGuid($rawFile['Id'], 'File id '. $rawFile['Id'] . ' is malformed.');
+                self::ThrowErrorOnInvalidGuid($id, 'File id '. $id . ' is malformed.');
                 foreach ($existingFiles as $existingFile) {
-                    if ($existingFile->Id === $rawFile['Id']) {
+                    if ($existingFile->Id === $id) {
                         $file->Id = $existingFile->Id;
                         break;
                     }
                 }
 
-                self::ThrowErrorOnNull($file->Id, 'File id '. $rawFile['Id'] . ' does not belong to this plugin.', GeneralError::ResourceNotFound);
+                self::ThrowErrorOnNull($file->Id, 'File id '. $id . ' does not belong to this plugin.', GeneralError::ResourceNotFound);
             }
             else
             {
@@ -123,7 +125,7 @@ class FileController extends BaseController
             $file->Checksum = $rawFile['Checksum'];
             $file->Filename = $rawFile['Filename'];
             $file->Plugin = $pluginId;
-            if($rawFile['Id'] === null)
+            if($id === null)
             {
                 $newFiles[] = $file;
             }else{

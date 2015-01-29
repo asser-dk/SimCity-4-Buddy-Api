@@ -20,13 +20,13 @@ class PluginRegister
             FROM `Plugin`
             WHERE `Plugin`.`Id` = ?');
 
-        $statement->bind_param('s', $pluginId);
+        $statement->bind_param('s', strtoupper($pluginId));
         $statement->execute();
         $statement->bind_result($id, $name, $author, $link, $description);
         $statement->fetch();
 
         $plugin = new Plugin();
-        $plugin->Id = $id;
+        $plugin->Id = strtoupper($id);
         $plugin->Name = $name;
         $plugin->Author = $author;
         $plugin->Link = $link;
@@ -47,7 +47,7 @@ class PluginRegister
         $statement = $this->MySql->prepare('
             INSERT INTO `Plugin` (`Id`, `Name`, `Author`, `Link`, `Description`) VALUE (?, ?, ?, ?, ?)');
 
-        $statement->bind_param('sssss', $plugin->Id, $plugin->Name, $plugin->Author, $plugin->Link, $plugin->Description);
+        $statement->bind_param('sssss', strtoupper($plugin->Id), $plugin->Name, $plugin->Author, $plugin->Link, $plugin->Description);
         $statement->execute();
     }
 
@@ -80,7 +80,7 @@ class PluginRegister
             `Plugin`.`Description` = ?,
             `Plugin`.Link = ?
             WHERE `Plugin`.`Id` = ?');
-        $statement->bind_param('sssss', $plugin->Name, $plugin->Author, $plugin->Description,  $plugin->Link, $plugin->Id);
+        $statement->bind_param('sssss', $plugin->Name, $plugin->Author, $plugin->Description,  $plugin->Link, strtoupper($plugin->Id));
         $statement->execute();
         $statement->close();
 
@@ -110,7 +110,7 @@ class PluginRegister
         while($statement->fetch())
         {
             $plugin = new Plugin();
-            $plugin->Id = $id;
+            $plugin->Id = strtoupper($id);
             $plugin->Name = $name;
             $plugin->Author = $author;
             $plugin->Description = $description;

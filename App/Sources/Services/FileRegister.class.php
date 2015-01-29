@@ -32,10 +32,10 @@ class FileRegister
         while($statement->fetch())
         {
             $file = new File();
-            $file->Id = $id;
+            $file->Id = strtoupper($id);
             $file->Checksum = $checksum;
             $file->Filename = $filename;
-            $file->Plugin = $pluginId;
+            $file->Plugin = strtoupper($pluginId);
             $files[] = $file;
         }
 
@@ -48,7 +48,7 @@ class FileRegister
     {
         $statement = $this->MySql->prepare('
             INSERT INTO `File` (`Id`, `Checksum`, `Filename`, `Plugin`) VALUE (?, ?, ?, ?)');
-        $statement->bind_param('ssss', $file->Id, $file->Checksum, $file->Filename, $file->Plugin);
+        $statement->bind_param('ssss', strtoupper($file->Id), $file->Checksum, $file->Filename, strtoupper($file->Plugin));
         $statement->execute();
     }
 
@@ -59,7 +59,7 @@ class FileRegister
             FROM `File`
             WHERE `File`.`Plugin` = ?
             LIMIT 1');
-        $statement->bind_param('s', $pluginId);
+        $statement->bind_param('s', strtoupper($pluginId));
         $statement->execute();
         $statement->bind_result($id);
         $statement->fetch();
@@ -78,7 +78,7 @@ class FileRegister
                 `File`.`Plugin` AS `plugin`
             FROM `File`
             WHERE `File`.`Plugin` = ?');
-        $statement->bind_param('s', $pluginId);
+        $statement->bind_param('s', strtoupper($pluginId));
         $statement->execute();
         $statement->bind_result($id, $filename, $checksum, $plugin);
 
@@ -87,10 +87,10 @@ class FileRegister
         while($statement->fetch())
         {
             $file = new File();
-            $file->Id = $id;
+            $file->Id = strtoupper($id);
             $file->Filename = $filename;
             $file->Checksum = $checksum;
-            $file->Plugin = $plugin;
+            $file->Plugin = strtoupper($plugin);
             $files[] = $file;
         }
 
@@ -108,7 +108,7 @@ class FileRegister
                 `File`.`Checksum` = ?,
                 `File`.`Plugin` = ?
                 WHERE `File`.`Id` = ?');
-        $statement->bind_param('ssss', $file->Filename, $file->Checksum, $file->Plugin, $file->Id);
+        $statement->bind_param('ssss', $file->Filename, $file->Checksum, strtoupper($file->Plugin), strtoupper($file->Id));
         $statement->execute();
     }
 
@@ -117,7 +117,7 @@ class FileRegister
         $statement = $this->MySql->prepare('
             DELETE FROM `File`
             WHERE `File`.`Id` = ?');
-        $statement->bind_param('s', $file->Id);
+        $statement->bind_param('s', strtoupper($file->Id));
         $statement->execute();
     }
 }
