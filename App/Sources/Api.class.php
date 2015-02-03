@@ -80,14 +80,14 @@
             header($exception->GetHeaderString());
 
             return array(
-                'timestamp' => date('c'),
-                    'status' => array(
-                        'code' => $exception->StatusCode,
-                        'name' => $exception->Name
+                'Timestamp' => date('c'),
+                    'Status' => array(
+                        'Code' => $exception->StatusCode,
+                        'Name' => $exception->Name
                     ),
-                    'error' => array(
-                        'code' => $exception->ErrorCode,
-                        'message' => $exception->getMessage()
+                    'Error' => array(
+                        'Code' => $exception->ErrorCode,
+                        'Message' => $exception->getMessage()
                     )
             );
         }
@@ -103,8 +103,12 @@
 
             return
                 array(
-                    'timestamp' => date('c'),
-                    'error' => $error
+                    'Timestamp' => date('c'),
+                    'Status' => array(
+                        'Code' => 500,
+                        'Name' => 'Internal Server Error'
+                    ),
+                    'Error' => $error
                 );
         }
 

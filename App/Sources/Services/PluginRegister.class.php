@@ -16,13 +16,14 @@ class PluginRegister
                 `Plugin`.`Name` AS `name`,
                 `Plugin`.`Author` AS `author`,
                 `Plugin`.`Link` AS `link`,
-                `Plugin`.`Description` AS `description`
+                `Plugin`.`Description` AS `description`,
+                `Plugin`.`Version` AS `version`
             FROM `Plugin`
             WHERE `Plugin`.`Id` = ?');
 
         $statement->bind_param('s', strtoupper($pluginId));
         $statement->execute();
-        $statement->bind_result($id, $name, $author, $link, $description);
+        $statement->bind_result($id, $name, $author, $link, $description, $version);
         $statement->fetch();
 
         $plugin = new Plugin();
@@ -31,6 +32,7 @@ class PluginRegister
         $plugin->Author = $author;
         $plugin->Link = $link;
         $plugin->Description = $description;
+        $plugin->Version = $version;
 
         $statement->close();
 
@@ -45,9 +47,9 @@ class PluginRegister
     public function AddPlugin(Plugin $plugin)
     {
         $statement = $this->MySql->prepare('
-            INSERT INTO `Plugin` (`Id`, `Name`, `Author`, `Link`, `Description`) VALUE (?, ?, ?, ?, ?)');
+            INSERT INTO `Plugin` (`Id`, `Name`, `Author`, `Link`, `Description`, `Version`) VALUE (?, ?, ?, ?, ?, ?)');
 
-        $statement->bind_param('sssss', strtoupper($plugin->Id), $plugin->Name, $plugin->Author, $plugin->Link, $plugin->Description);
+        $statement->bind_param('sssssd', strtoupper($plugin->Id), $plugin->Name, $plugin->Author, $plugin->Link, $plugin->Description, $plugin->Version);
         $statement->execute();
     }
 

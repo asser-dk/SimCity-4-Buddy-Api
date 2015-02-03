@@ -10,5 +10,7 @@ class Plugin
     public $Link;
 
     public $Description;
+
+    public $Version;
 }
 ?>
