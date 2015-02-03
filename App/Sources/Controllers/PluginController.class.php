@@ -94,12 +94,44 @@ class PluginController extends BaseController
         }
 
         self::ThrowErrorOnEmptyPayload($rawPlugin, 'Request payload is malformed.');
+        self::ThrowErrorOnNullOrEmptyString($rawPlugin['Name'], 'Plugin name is missing.');
+        self::ThrowErrorOnNullOrEmptyString($rawPlugin['Author'], 'Author name is missing.');
+        self::ThrowErrorOnNullOrEmptyString($rawPlugin['Link'], 'Link is missing.');
+        self::ThrowErrorOnNullOrEmptyString($rawPlugin['Description'], 'Description is missing.');
+        self::ThrowErrorOnNullOrEmptyString($rawPlugin['Version'], 'Version is missing.');
 
-        self::ThrowErrorOnNullOrEmptyString($rawPlugin['Name'], 'Plugin name is missing');
-        self::ThrowErrorOnNullOrEmptyString($rawPlugin['Author'], 'Author name is missing');
-        self::ThrowErrorOnNullOrEmptyString($rawPlugin['Link'], 'Link is missing');
-        self::ThrowErrorOnNullOrEmptyString($rawPlugin['Description'], 'Description is missing');
-        self::ThrowErrorOnNullOrEmptyString($rawPlugin['Version'], 'Version is missing');
+        if(preg_match('/^(?:(?:https?|ftp):\/\/)(?:www\.)?[-a-z0-9+&@#\/%?=~_|!:,.;]*[-a-z0-9+&@#\/%=~_|]/i', $rawPlugin['Link']) == FALSE)
+        {
+            throw new BadRequestException(GeneralError::InvalidParameter, 'Link is not a valid URL.');
+        }
+
+        if($this->Register->IsUrlInUse($rawPlugin['Link'], $pluginId))
+        {
+            throw new BadRequestException(GeneralError::UniqueValueAlreadyTaken, 'There is already a plugin registered for this URL.');
+        }
+
+        $plugin = new Plugin();
+        $plugin->Id = $pluginId;
+        $plugin->Name = $rawPlugin['Name'];
+        $plugin->Author = $rawPlugin['Author'];
+        $plugin->Description = $rawPlugin['Description'];
+        $plugin->Link = $rawPlugin['Link'];
+        $plugin->Version = $rawPlugin['Version'];
+
+        $updatedPlugin = $this->Register->UpdatePlugin($plugin);
+
+        header('HTTP/1.1 200 OK');
+        return $updatedPlugin;
+    }
+
+    public function PostPlugin(array $rawPlugin = null)
+    {
+        self::ThrowErrorOnEmptyPayload($rawPlugin, 'Request payload is malformed.');
+        self::ThrowErrorOnNullOrEmptyString($rawPlugin['Name'], 'Plugin name is missing.');
+        self::ThrowErrorOnNullOrEmptyString($rawPlugin['Author'], 'Author name is missing.');
+        self::ThrowErrorOnNullOrEmptyString($rawPlugin['Link'], 'Link is missing.');
+        self::ThrowErrorOnNullOrEmptyString($rawPlugin['Description'], 'Description is missing.');
+        self::ThrowErrorOnNullOrEmptyString($rawPlugin['Version'], 'Version is missing.');
 
         if(preg_match('/^(?:(?:https?|ftp):\/\/)(?:www\.)?[-a-z0-9+&@#\/%?=~_|!:,.;]*[-a-z0-9+&@#\/%=~_|]/i', $rawPlugin['Link']) == FALSE)
         {
@@ -117,7 +149,7 @@ class PluginController extends BaseController
         $plugin->Link = $rawPlugin['Link'];
         $plugin->Author = $rawPlugin['Author'];
         $plugin->Description = $rawPlugin['Description'];
-        $plugin->Version = (double)$rawPlugin['Version'];
+        $plugin->Version = $rawPlugin['Version'];
 
         $this->Register->AddPlugin($plugin);
 

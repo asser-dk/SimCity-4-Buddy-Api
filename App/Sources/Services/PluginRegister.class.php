@@ -49,7 +49,7 @@ class PluginRegister
         $statement = $this->MySql->prepare('
             INSERT INTO `Plugin` (`Id`, `Name`, `Author`, `Link`, `Description`, `Version`) VALUE (?, ?, ?, ?, ?, ?)');
 
-        $statement->bind_param('sssssd', strtoupper($plugin->Id), $plugin->Name, $plugin->Author, $plugin->Link, $plugin->Description, $plugin->Version);
+        $statement->bind_param('ssssss', strtoupper($plugin->Id), $plugin->Name, $plugin->Author, $plugin->Link, $plugin->Description, $plugin->Version);
         $statement->execute();
     }
 
@@ -80,9 +80,10 @@ class PluginRegister
             `Plugin`.`Name` = ?,
             `Plugin`.`Author` = ?,
             `Plugin`.`Description` = ?,
-            `Plugin`.Link = ?
+            `Plugin`.Link = ?,
+            `Plugin`.`Version` = ?
             WHERE `Plugin`.`Id` = ?');
-        $statement->bind_param('sssss', $plugin->Name, $plugin->Author, $plugin->Description,  $plugin->Link, strtoupper($plugin->Id));
+        $statement->bind_param('ssssss', $plugin->Name, $plugin->Author, $plugin->Description,  $plugin->Link, $plugin->Version, strtoupper($plugin->Id));
         $statement->execute();
         $statement->close();
 
