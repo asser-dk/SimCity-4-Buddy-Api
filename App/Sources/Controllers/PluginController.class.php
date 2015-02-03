@@ -117,7 +117,7 @@ class PluginController extends BaseController
         $plugin->Link = $rawPlugin['Link'];
         $plugin->Author = $rawPlugin['Author'];
         $plugin->Description = $rawPlugin['Description'];
-        $plugin->Version = (double)$rawPlugin['Version'];
+        $plugin->Version = $rawPlugin['Version'];
 
         $this->Register->AddPlugin($plugin);
 
