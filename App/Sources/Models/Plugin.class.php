@@ -12,5 +12,6 @@ class Plugin
     public $Description;
 
     public $Version;
+
+    public $Dependencies;
 }
-?>
