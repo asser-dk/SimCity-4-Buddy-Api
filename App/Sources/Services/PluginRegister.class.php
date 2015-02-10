@@ -125,14 +125,15 @@ class PluginRegister
                 `Plugin`.`Name` AS `name`,
                 `Plugin`.`Author` AS `author`,
                 `Plugin`.`Description` AS `description`,
-                `Plugin`.`Link` AS `link`
+                `Plugin`.`Link` AS `link`,
+                `Plugin`.`Version` as `version`
             FROM `Plugin`
             ORDER BY ' . $orderByString . '
             LIMIT ?, ?';
         $statement = $this->MySql->prepare($statementString);
         $statement->bind_param('ii', $offset, $perPage);
         $statement->execute();
-        $statement->bind_result($id, $name, $author, $description, $link);
+        $statement->bind_result($id, $name, $author, $description, $link, $version);
 
         $plugins = [];
         while ($statement->fetch())
@@ -143,6 +144,7 @@ class PluginRegister
             $plugin->Author = $author;
             $plugin->Description = $description;
             $plugin->Link = $link;
+            $plugin->Version = $version;
             $plugins[] = $plugin;
         }
 
