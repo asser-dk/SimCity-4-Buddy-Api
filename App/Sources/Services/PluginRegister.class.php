@@ -10,8 +10,8 @@ class PluginRegister
 
     public function GetPlugin(string $pluginId)
     {
-        $statement = $this->MySql->prepare('
-            SELECT
+        $statement = $this->MySql->prepare(
+            'SELECT
                 `Plugin`.`Id` AS `id`,
                 `Plugin`.`Name` AS `name`,
                 `Plugin`.`Author` AS `author`,
@@ -36,7 +36,7 @@ class PluginRegister
 
         $statement->close();
 
-        if($plugin->Id === null)
+        if ($plugin->Id === null)
         {
             return null;
         }
@@ -46,10 +46,17 @@ class PluginRegister
 
     public function AddPlugin(Plugin $plugin)
     {
-        $statement = $this->MySql->prepare('
-            INSERT INTO `Plugin` (`Id`, `Name`, `Author`, `Link`, `Description`, `Version`) VALUE (?, ?, ?, ?, ?, ?)');
+        $statement = $this->MySql->prepare(
+            'INSERT INTO `Plugin` (`Id`, `Name`, `Author`, `Link`, `Description`, `Version`) VALUE (?, ?, ?, ?, ?, ?)');
 
-        $statement->bind_param('ssssss', strtoupper($plugin->Id), $plugin->Name, $plugin->Author, $plugin->Link, $plugin->Description, $plugin->Version);
+        $statement->bind_param(
+            'ssssss',
+            strtoupper($plugin->Id),
+            $plugin->Name,
+            $plugin->Author,
+            $plugin->Link,
+            $plugin->Description,
+            $plugin->Version);
         $statement->execute();
     }
 
@@ -59,8 +66,11 @@ class PluginRegister
         {
             $statement = $this->MySql->prepare('SELECT `Plugin`.`Id` AS `id` FROM `Plugin` WHERE `Plugin`.`Link` = ?');
             $statement->bind_param('s', $link);
-        }else{
-            $statement = $this->MySql->prepare('SELECT `Plugin`.`Id` AS `id` FROM `Plugin` WHERE `Plugin`.`Link` = ? AND `Plugin`.`Id` != ?');
+        }
+        else
+        {
+            $statement = $this->MySql->prepare(
+                'SELECT `Plugin`.`Id` AS `id` FROM `Plugin` WHERE `Plugin`.`Link` = ? AND `Plugin`.`Id` != ?');
             $statement->bind_param('ss', $link, $existingPluginId);
         }
 
@@ -74,8 +84,8 @@ class PluginRegister
 
     public function UpdatePlugin(Plugin $plugin)
     {
-        $statement = $this->MySql->prepare('
-            UPDATE `Plugin`
+        $statement = $this->MySql->prepare(
+            'UPDATE `Plugin`
             SET
             `Plugin`.`Name` = ?,
             `Plugin`.`Author` = ?,
@@ -83,7 +93,14 @@ class PluginRegister
             `Plugin`.Link = ?,
             `Plugin`.`Version` = ?
             WHERE `Plugin`.`Id` = ?');
-        $statement->bind_param('ssssss', $plugin->Name, $plugin->Author, $plugin->Description,  $plugin->Link, $plugin->Version, strtoupper($plugin->Id));
+        $statement->bind_param(
+            'ssssss',
+            $plugin->Name,
+            $plugin->Author,
+            $plugin->Description,
+            $plugin->Link,
+            $plugin->Version,
+            strtoupper($plugin->Id));
         $statement->execute();
         $statement->close();
 
@@ -105,12 +122,12 @@ class PluginRegister
             ORDER BY ' . $orderByString . '
             LIMIT ?, ?';
         $statement = $this->MySql->prepare($statementString);
-        $statement->bind_param('ii',$offset, $perPage);
+        $statement->bind_param('ii', $offset, $perPage);
         $statement->execute();
         $statement->bind_result($id, $name, $author, $description, $link);
 
         $plugins = [];
-        while($statement->fetch())
+        while ($statement->fetch())
         {
             $plugin = new Plugin();
             $plugin->Id = strtoupper($id);
@@ -126,4 +143,3 @@ class PluginRegister
         return $plugins;
     }
 }
-?>
