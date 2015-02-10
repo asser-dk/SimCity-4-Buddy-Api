@@ -129,6 +129,24 @@ class PluginController extends BaseController
         $plugin->Link = $rawPlugin['Link'];
         $plugin->Version = $rawPlugin['Version'];
 
+        if (isset($rawPlugin['Dependencies']) && is_array($rawPlugin['Dependencies']))
+        {
+            $dependencies = array_unique($rawPlugin['Dependencies']);
+
+            foreach ($dependencies as $dependency)
+            {
+                self::ThrowErrorOnInvalidGuid($dependency, 'Dependency plugin id ' . $dependency . ' is invalid.');
+                if ($this->Register->GetPlugin($dependency) == null)
+                {
+                    throw new BadRequestException(
+                        GeneralError::ResourceNotFound,
+                        'Dependency plugin id ' . $dependency . ' was not found.');
+                }
+            }
+
+            $plugin->Dependencies = $dependencies;
+        }
+
         $updatedPlugin = $this->Register->UpdatePlugin($plugin);
 
         header('HTTP/1.1 200 OK');
@@ -166,6 +184,24 @@ class PluginController extends BaseController
         $plugin->Author = $rawPlugin['Author'];
         $plugin->Description = $rawPlugin['Description'];
         $plugin->Version = $rawPlugin['Version'];
+
+        if (isset($rawPlugin['Dependencies']) && is_array($rawPlugin['Dependencies']))
+        {
+            $dependencies = array_unique($rawPlugin['Dependencies']);
+
+            foreach ($dependencies as $dependency)
+            {
+                self::ThrowErrorOnInvalidGuid($dependency, 'Dependency plugin id ' . $dependency . ' is invalid.');
+                if ($this->Register->GetPlugin($dependency) == null)
+                {
+                    throw new BadRequestException(
+                        GeneralError::ResourceNotFound,
+                        'Dependency plugin id ' . $dependency . ' was not found.');
+                }
+            }
+
+            $plugin->Dependencies = $dependencies;
+        }
 
         $this->Register->AddPlugin($plugin);
 
