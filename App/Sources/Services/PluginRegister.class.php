@@ -60,7 +60,9 @@ class PluginRegister
             $plugin->Description,
             $plugin->Version);
         $statement->execute();
+        $statement->close();
 
+        $this->AddPluginDependencies($plugin);
     }
 
     public function IsUrlInUse(string $link, $existingPluginId = null)
@@ -106,6 +108,9 @@ class PluginRegister
             strtoupper($plugin->Id));
         $statement->execute();
         $statement->close();
+
+        $this->RemovePluginDependencies($plugin);
+        $this->AddPluginDependencies($plugin);
 
         return $plugin;
     }
@@ -171,5 +176,29 @@ class PluginRegister
         $statement->close();
 
         return $dependencies;
+    }
+
+    private function AddPluginDependencies(Plugin $plugin)
+    {
+        if ($plugin->Dependencies != null && count($plugin->Dependencies) > 0)
+        {
+            $statement = $this->MySql->prepare('INSERT INTO `Dependency` (`Plugin`, `Dependency`) VALUES (?, ?)');
+            foreach ($plugin->Dependencies as $dependency)
+            {
+                $statement->bind_param('ss', $plugin->Id, $dependency);
+                $statement->execute();
+            }
+
+            $statement->close();
+        }
+
+    }
+
+    private function RemovePluginDependencies(Plugin $plugin)
+    {
+        $statement = $this->MySql->prepare('DELETE FROM `Dependency` WHERE `Dependency`.`Plugin` = ?');
+        $statement->bind_param('s', $plugin->Id);
+        $statement->execute();
+        $statement->close();
     }
 }
