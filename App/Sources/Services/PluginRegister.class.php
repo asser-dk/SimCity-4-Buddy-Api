@@ -41,6 +41,8 @@ class PluginRegister
             return null;
         }
 
+        $plugin->Dependencies = $this->GetPluginDependencies($plugin->Id);
+
         return $plugin;
     }
 
@@ -58,6 +60,7 @@ class PluginRegister
             $plugin->Description,
             $plugin->Version);
         $statement->execute();
+
     }
 
     public function IsUrlInUse(string $link, $existingPluginId = null)
@@ -140,6 +143,33 @@ class PluginRegister
 
         $statement->close();
 
+        if (count($plugins) > 0)
+        {
+            foreach ($plugins as $plugin)
+            {
+                $plugin->Dependencies = $this->GetPluginDependencies($plugin->Id);
+            }
+        }
+
         return $plugins;
+    }
+
+    private function GetPluginDependencies(string $pluginId)
+    {
+        $statement = $this->MySql->prepare(
+            'SELECT `Dependency`.`Dependency` FROM `Dependency` WHERE `Dependency`.`Plugin` = ?');
+        $statement->bind_param('s', $pluginId);
+        $statement->execute();
+        $statement->bind_result($dependencyId);
+
+        $dependencies = [];
+        while ($statement->fetch())
+        {
+            $dependencies[] = $dependencyId;
+        }
+
+        $statement->close();
+
+        return $dependencies;
     }
 }
