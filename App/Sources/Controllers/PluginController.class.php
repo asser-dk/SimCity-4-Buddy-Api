@@ -1,6 +1,7 @@
 <?php
 class PluginController extends BaseController
 {
+
     const MaxPluginsPerPage = 100;
 
     private $Register;
@@ -43,7 +44,7 @@ class PluginController extends BaseController
 
     public function ProcessRequest(string $memberName, array $arguments = null)
     {
-        switch($memberName)
+        switch ($memberName)
         {
             case 'GetPlugin':
                 return $this->GetPlugin($arguments['pluginId']);
@@ -54,7 +55,9 @@ class PluginController extends BaseController
             case 'GetPlugins':
                 return $this->GetPlugins((int)$arguments['page'], (int)$arguments['perPage'], $arguments['orderBy']);
             default:
-                throw new NotFoundException(GeneralError::ResourceNotFound, 'The requested resource was not found on this server.');
+                throw new NotFoundException(
+                    GeneralError::ResourceNotFound,
+                    'The requested resource was not found on this server.');
         }
     }
 
@@ -71,10 +74,11 @@ class PluginController extends BaseController
 
         $plugins = $this->Register->GetPlugins($page, $perPage, $orderByString);
 
-        if(count($plugins) > 0)
+        if (count($plugins) > 0)
         {
             header('HTTP/1.1 200 OK');
-        }else
+        }
+        else
         {
             header('HTTP/1.1 404 Not Found');
         }
@@ -88,9 +92,11 @@ class PluginController extends BaseController
 
         $oldPlugin = $this->Register->GetPlugin($pluginId);
 
-        if($oldPlugin === null)
+        if ($oldPlugin === null)
         {
-            throw new NotFoundException(GeneralError::ResourceNotFound, 'No plugin with the id ' . $pluginId . ' found.');
+            throw new NotFoundException(
+                GeneralError::ResourceNotFound,
+                'No plugin with the id ' . $pluginId . ' found.');
         }
 
         self::ThrowErrorOnEmptyPayload($rawPlugin, 'Request payload is malformed.');
@@ -100,14 +106,19 @@ class PluginController extends BaseController
         self::ThrowErrorOnNullOrEmptyString($rawPlugin['Description'], 'Description is missing.');
         self::ThrowErrorOnNullOrEmptyString($rawPlugin['Version'], 'Version is missing.');
 
-        if(preg_match('/^(?:(?:https?|ftp):\/\/)(?:www\.)?[-a-z0-9+&@#\/%?=~_|!:,.;]*[-a-z0-9+&@#\/%=~_|]/i', $rawPlugin['Link']) == FALSE)
+        if (preg_match(
+                '/^(?:(?:https?|ftp):\/\/)(?:www\.)?[-a-z0-9+&@#\/%?=~_|!:,.;]*[-a-z0-9+&@#\/%=~_|]/i',
+                $rawPlugin['Link']) == FALSE
+        )
         {
             throw new BadRequestException(GeneralError::InvalidParameter, 'Link is not a valid URL.');
         }
 
-        if($this->Register->IsUrlInUse($rawPlugin['Link'], $pluginId))
+        if ($this->Register->IsUrlInUse($rawPlugin['Link'], $pluginId))
         {
-            throw new BadRequestException(GeneralError::UniqueValueAlreadyTaken, 'There is already a plugin registered for this URL.');
+            throw new BadRequestException(
+                GeneralError::UniqueValueAlreadyTaken,
+                'There is already a plugin registered for this URL.');
         }
 
         $plugin = new Plugin();
@@ -117,6 +128,24 @@ class PluginController extends BaseController
         $plugin->Description = $rawPlugin['Description'];
         $plugin->Link = $rawPlugin['Link'];
         $plugin->Version = $rawPlugin['Version'];
+
+        if (isset($rawPlugin['Dependencies']) && is_array($rawPlugin['Dependencies']))
+        {
+            $dependencies = array_unique($rawPlugin['Dependencies']);
+
+            foreach ($dependencies as $dependency)
+            {
+                self::ThrowErrorOnInvalidGuid($dependency, 'Dependency plugin id ' . $dependency . ' is invalid.');
+                if ($this->Register->GetPlugin($dependency) == null)
+                {
+                    throw new BadRequestException(
+                        GeneralError::ResourceNotFound,
+                        'Dependency plugin id ' . $dependency . ' was not found.');
+                }
+            }
+
+            $plugin->Dependencies = $dependencies;
+        }
 
         $updatedPlugin = $this->Register->UpdatePlugin($plugin);
 
@@ -133,14 +162,19 @@ class PluginController extends BaseController
         self::ThrowErrorOnNullOrEmptyString($rawPlugin['Description'], 'Description is missing.');
         self::ThrowErrorOnNullOrEmptyString($rawPlugin['Version'], 'Version is missing.');
 
-        if(preg_match('/^(?:(?:https?|ftp):\/\/)(?:www\.)?[-a-z0-9+&@#\/%?=~_|!:,.;]*[-a-z0-9+&@#\/%=~_|]/i', $rawPlugin['Link']) == FALSE)
+        if (preg_match(
+                '/^(?:(?:https?|ftp):\/\/)(?:www\.)?[-a-z0-9+&@#\/%?=~_|!:,.;]*[-a-z0-9+&@#\/%=~_|]/i',
+                $rawPlugin['Link']) == FALSE
+        )
         {
             throw new BadRequestException(GeneralError::InvalidParameter, 'Link is not a valid URL.');
         }
 
-        if($this->Register->IsUrlInUse($rawPlugin['Link']))
+        if ($this->Register->IsUrlInUse($rawPlugin['Link']))
         {
-            throw new BadRequestException(GeneralError::UniqueValueAlreadyTaken, 'There is already a plugin registered for this URL.');
+            throw new BadRequestException(
+                GeneralError::UniqueValueAlreadyTaken,
+                'There is already a plugin registered for this URL.');
         }
 
         $plugin = new Plugin();
@@ -150,6 +184,24 @@ class PluginController extends BaseController
         $plugin->Author = $rawPlugin['Author'];
         $plugin->Description = $rawPlugin['Description'];
         $plugin->Version = $rawPlugin['Version'];
+
+        if (isset($rawPlugin['Dependencies']) && is_array($rawPlugin['Dependencies']))
+        {
+            $dependencies = array_unique($rawPlugin['Dependencies']);
+
+            foreach ($dependencies as $dependency)
+            {
+                self::ThrowErrorOnInvalidGuid($dependency, 'Dependency plugin id ' . $dependency . ' is invalid.');
+                if ($this->Register->GetPlugin($dependency) == null)
+                {
+                    throw new BadRequestException(
+                        GeneralError::ResourceNotFound,
+                        'Dependency plugin id ' . $dependency . ' was not found.');
+                }
+            }
+
+            $plugin->Dependencies = $dependencies;
+        }
 
         $this->Register->AddPlugin($plugin);
 
@@ -163,7 +215,7 @@ class PluginController extends BaseController
 
         $plugin = $this->Register->GetPlugin($pluginId);
 
-        if($plugin === null)
+        if ($plugin === null)
         {
             header('HTTP/1.1 404 Not Found');
         }
@@ -175,4 +227,3 @@ class PluginController extends BaseController
         return $plugin;
     }
 }
-?>

@@ -10,8 +10,8 @@ class PluginRegister
 
     public function GetPlugin(string $pluginId)
     {
-        $statement = $this->MySql->prepare('
-            SELECT
+        $statement = $this->MySql->prepare(
+            'SELECT
                 `Plugin`.`Id` AS `id`,
                 `Plugin`.`Name` AS `name`,
                 `Plugin`.`Author` AS `author`,
@@ -36,21 +36,33 @@ class PluginRegister
 
         $statement->close();
 
-        if($plugin->Id === null)
+        if ($plugin->Id === null)
         {
             return null;
         }
+
+        $plugin->Dependencies = $this->GetPluginDependencies($plugin->Id);
 
         return $plugin;
     }
 
     public function AddPlugin(Plugin $plugin)
     {
-        $statement = $this->MySql->prepare('
-            INSERT INTO `Plugin` (`Id`, `Name`, `Author`, `Link`, `Description`, `Version`) VALUE (?, ?, ?, ?, ?, ?)');
+        $statement = $this->MySql->prepare(
+            'INSERT INTO `Plugin` (`Id`, `Name`, `Author`, `Link`, `Description`, `Version`) VALUE (?, ?, ?, ?, ?, ?)');
 
-        $statement->bind_param('ssssss', strtoupper($plugin->Id), $plugin->Name, $plugin->Author, $plugin->Link, $plugin->Description, $plugin->Version);
+        $statement->bind_param(
+            'ssssss',
+            strtoupper($plugin->Id),
+            $plugin->Name,
+            $plugin->Author,
+            $plugin->Link,
+            $plugin->Description,
+            $plugin->Version);
         $statement->execute();
+        $statement->close();
+
+        $this->AddPluginDependencies($plugin);
     }
 
     public function IsUrlInUse(string $link, $existingPluginId = null)
@@ -59,8 +71,11 @@ class PluginRegister
         {
             $statement = $this->MySql->prepare('SELECT `Plugin`.`Id` AS `id` FROM `Plugin` WHERE `Plugin`.`Link` = ?');
             $statement->bind_param('s', $link);
-        }else{
-            $statement = $this->MySql->prepare('SELECT `Plugin`.`Id` AS `id` FROM `Plugin` WHERE `Plugin`.`Link` = ? AND `Plugin`.`Id` != ?');
+        }
+        else
+        {
+            $statement = $this->MySql->prepare(
+                'SELECT `Plugin`.`Id` AS `id` FROM `Plugin` WHERE `Plugin`.`Link` = ? AND `Plugin`.`Id` != ?');
             $statement->bind_param('ss', $link, $existingPluginId);
         }
 
@@ -74,8 +89,8 @@ class PluginRegister
 
     public function UpdatePlugin(Plugin $plugin)
     {
-        $statement = $this->MySql->prepare('
-            UPDATE `Plugin`
+        $statement = $this->MySql->prepare(
+            'UPDATE `Plugin`
             SET
             `Plugin`.`Name` = ?,
             `Plugin`.`Author` = ?,
@@ -83,9 +98,19 @@ class PluginRegister
             `Plugin`.Link = ?,
             `Plugin`.`Version` = ?
             WHERE `Plugin`.`Id` = ?');
-        $statement->bind_param('ssssss', $plugin->Name, $plugin->Author, $plugin->Description,  $plugin->Link, $plugin->Version, strtoupper($plugin->Id));
+        $statement->bind_param(
+            'ssssss',
+            $plugin->Name,
+            $plugin->Author,
+            $plugin->Description,
+            $plugin->Link,
+            $plugin->Version,
+            strtoupper($plugin->Id));
         $statement->execute();
         $statement->close();
+
+        $this->RemovePluginDependencies($plugin);
+        $this->AddPluginDependencies($plugin);
 
         return $plugin;
     }
@@ -105,12 +130,12 @@ class PluginRegister
             ORDER BY ' . $orderByString . '
             LIMIT ?, ?';
         $statement = $this->MySql->prepare($statementString);
-        $statement->bind_param('ii',$offset, $perPage);
+        $statement->bind_param('ii', $offset, $perPage);
         $statement->execute();
         $statement->bind_result($id, $name, $author, $description, $link);
 
         $plugins = [];
-        while($statement->fetch())
+        while ($statement->fetch())
         {
             $plugin = new Plugin();
             $plugin->Id = strtoupper($id);
@@ -123,7 +148,57 @@ class PluginRegister
 
         $statement->close();
 
+        if (count($plugins) > 0)
+        {
+            foreach ($plugins as $plugin)
+            {
+                $plugin->Dependencies = $this->GetPluginDependencies($plugin->Id);
+            }
+        }
+
         return $plugins;
     }
+
+    private function GetPluginDependencies(string $pluginId)
+    {
+        $statement = $this->MySql->prepare(
+            'SELECT `Dependency`.`Dependency` FROM `Dependency` WHERE `Dependency`.`Plugin` = ?');
+        $statement->bind_param('s', $pluginId);
+        $statement->execute();
+        $statement->bind_result($dependencyId);
+
+        $dependencies = [];
+        while ($statement->fetch())
+        {
+            $dependencies[] = $dependencyId;
+        }
+
+        $statement->close();
+
+        return $dependencies;
+    }
+
+    private function AddPluginDependencies(Plugin $plugin)
+    {
+        if ($plugin->Dependencies != null && count($plugin->Dependencies) > 0)
+        {
+            $statement = $this->MySql->prepare('INSERT INTO `Dependency` (`Plugin`, `Dependency`) VALUES (?, ?)');
+            foreach ($plugin->Dependencies as $dependency)
+            {
+                $statement->bind_param('ss', $plugin->Id, $dependency);
+                $statement->execute();
+            }
+
+            $statement->close();
+        }
+
+    }
+
+    private function RemovePluginDependencies(Plugin $plugin)
+    {
+        $statement = $this->MySql->prepare('DELETE FROM `Dependency` WHERE `Dependency`.`Plugin` = ?');
+        $statement->bind_param('s', $plugin->Id);
+        $statement->execute();
+        $statement->close();
+    }
 }
-?>
