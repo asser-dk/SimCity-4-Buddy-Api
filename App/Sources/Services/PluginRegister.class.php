@@ -181,4 +181,17 @@ class PluginRegister
         $statement->execute();
         $statement->close();
     }
+
+    public function DeletePlugin($pluginId)
+    {
+        $statement = $this->MySql->prepare('DELETE FROM `Dependency` WHERE `Dependency` = ? OR `Plugin` = ?');
+        $statement->bind_param('ss', $pluginId, $pluginId);
+        $statement->execute();
+        $statement->close();
+
+        $statement = $this->MySql->prepare('DELETE FROM `Plugin` WHERE `Id` = ?');
+        $statement->bind_param('s', $pluginId);
+        $statement->execute();
+        $statement->close();
+    }
 }
