@@ -114,13 +114,6 @@ class PluginController extends BaseController
             throw new BadRequestException(GeneralError::InvalidParameter, 'Link is not a valid URL.');
         }
 
-        if ($this->Register->IsUrlInUse($rawPlugin['Link'], $pluginId))
-        {
-            throw new BadRequestException(
-                GeneralError::UniqueValueAlreadyTaken,
-                'There is already a plugin registered for this URL.');
-        }
-
         $plugin = new Plugin();
         $plugin->Id = $pluginId;
         $plugin->Name = $rawPlugin['Name'];
@@ -168,13 +161,6 @@ class PluginController extends BaseController
         )
         {
             throw new BadRequestException(GeneralError::InvalidParameter, 'Link is not a valid URL.');
-        }
-
-        if ($this->Register->IsUrlInUse($rawPlugin['Link']))
-        {
-            throw new BadRequestException(
-                GeneralError::UniqueValueAlreadyTaken,
-                'There is already a plugin registered for this URL.');
         }
 
         $plugin = new Plugin();
