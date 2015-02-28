@@ -1,11 +1,12 @@
 <?php
+
 abstract class BaseController implements IController
 {
     public static function ThrowErrorOnNullOrEmptyString(string $value, string $message, integer $errorCode = null)
     {
         self::ThrowErrorOnNull($value, $message, $errorCode);
 
-        if($value === '')
+        if ($value === '')
         {
             throw new BadRequestException($errorCode === null ? GeneralError::MissingParameter : $errorCode, $message);
         }
@@ -13,7 +14,7 @@ abstract class BaseController implements IController
 
     public static function ThrowErrorOnNull($value, string $message, integer $errorCode = null)
     {
-        if($value === null)
+        if ($value === null)
         {
             throw new BadRequestException($errorCode === null ? GeneralError::MissingParameter : $errorCode, $message);
         }
@@ -21,7 +22,7 @@ abstract class BaseController implements IController
 
     public static function ThrowErrorOnInvalidGuid(string $guid, string $message)
     {
-        if(!Guid::IsValid($guid))
+        if (!Guid::IsValid($guid))
         {
             throw new BadRequestException(GeneralError::MalformedId, $message);
         }
@@ -29,15 +30,25 @@ abstract class BaseController implements IController
 
     public static function ThrowErrorOnEmptyPayload(array $payload = null, string $message)
     {
-        if($payload === null)
+        if ($payload === null)
         {
             throw new BadRequestException(GeneralError::EmptyRequest, $message);
         }
 
-        if(!is_array($payload))
+        if (!is_array($payload))
         {
             throw new BadRequestException(GeneralError::PayloadMalformed, $message);
         }
     }
+
+    public static function ThrowErrorOnNullOrEmptyArray(array $value, string $message, integer $errorCode = null)
+    {
+        self::ThrowErrorOnNull($value, $message, $errorCode);
+
+        if (!is_array($value))
+        {
+            throw new BadRequestException($errorCode === null ? GeneralError::MissingParameter : $errorCode, $message);
+        }
+    }
 }
-?>
+
