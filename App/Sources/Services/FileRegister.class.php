@@ -29,7 +29,7 @@ class FileRegister
 
         $files = [];
 
-        while($statement->fetch())
+        while ($statement->fetch())
         {
             $file = new File();
             $file->Id = strtoupper($id);
@@ -46,15 +46,23 @@ class FileRegister
 
     public function AddFile(File $file)
     {
-        $statement = $this->MySql->prepare('
+        $statement = $this->MySql->prepare(
+            '
             INSERT INTO `File` (`Id`, `Checksum`, `Filename`, `Plugin`) VALUE (?, ?, ?, ?)');
-        $statement->bind_param('ssss', strtoupper($file->Id), $file->Checksum, $file->Filename, strtoupper($file->Plugin));
+        $statement->bind_param(
+            'ssss',
+            strtoupper($file->Id),
+            $file->Checksum,
+            $file->Filename,
+            strtoupper($file->Plugin));
         $statement->execute();
+        $statement->close();
     }
 
     public function HasFiles(string $pluginId)
     {
-        $statement = $this->MySql->prepare('
+        $statement = $this->MySql->prepare(
+            '
             SELECT `File`.`Id` AS `id`
             FROM `File`
             WHERE `File`.`Plugin` = ?
@@ -70,7 +78,8 @@ class FileRegister
 
     public function GetFilesForPlugin(string $pluginId)
     {
-        $statement = $this->MySql->prepare('
+        $statement = $this->MySql->prepare(
+            '
             SELECT
                 `File`.`Id` AS `id`,
                 `File`.`Filename` AS `filename`,
@@ -84,7 +93,7 @@ class FileRegister
 
         $files = [];
 
-        while($statement->fetch())
+        while ($statement->fetch())
         {
             $file = new File();
             $file->Id = strtoupper($id);
@@ -101,24 +110,40 @@ class FileRegister
 
     public function UpdateFile(File $file)
     {
-        $statement = $this->MySql->prepare('
+        $statement = $this->MySql->prepare(
+            '
             UPDATE `File`
             SET
                 `File`.`Filename` = ?,
                 `File`.`Checksum` = ?,
                 `File`.`Plugin` = ?
                 WHERE `File`.`Id` = ?');
-        $statement->bind_param('ssss', $file->Filename, $file->Checksum, strtoupper($file->Plugin), strtoupper($file->Id));
+        $statement->bind_param(
+            'ssss',
+            $file->Filename,
+            $file->Checksum,
+            strtoupper($file->Plugin),
+            strtoupper($file->Id));
         $statement->execute();
+        $statement->close();
     }
 
     public function RemoveFile(File $file)
     {
-        $statement = $this->MySql->prepare('
+        $statement = $this->MySql->prepare(
+            '
             DELETE FROM `File`
             WHERE `File`.`Id` = ?');
         $statement->bind_param('s', strtoupper($file->Id));
         $statement->execute();
+        $statement->close();
+    }
+
+    public function DeleteFiles($pluginId)
+    {
+        $statement = $this->MySql->prepare('DELETE FROM `File` WHERE `Plugin` = ?');
+        $statement->bind_param('s', $pluginId);
+        $statement->execute();
+        $statement->close();
     }
 }
-?>

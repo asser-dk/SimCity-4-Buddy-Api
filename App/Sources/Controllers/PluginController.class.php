@@ -6,9 +6,12 @@ class PluginController extends BaseController
 
     private $Register;
 
-    public function __construct(PluginRegister $register)
+    private $FileRegister;
+
+    public function __construct(PluginRegister $register, FileRegister $fileRegister)
     {
         $this->Register = $register;
+        $this->FileRegister = $fileRegister;
     }
 
     public function RouteTable()
@@ -17,7 +20,8 @@ class PluginController extends BaseController
             'plugin' => [
                 'methods' => [
                     'GET' => ['method' => 'GetPlugin'],
-                    'PUT' => ['method' => 'PutPlugin', 'authentication' => 'PutPlugin']
+                    'PUT' => ['method' => 'PutPlugin', 'authentication' => 'PutPlugin'],
+                    'DELETE' => ['method' => 'DeletePlugin', 'authentication' => 'DeletePlugin']
                 ],
                 'controller' => $this,
                 'documentation' => ['/plugins/{pluginId]' => 'Get info on a specific plugin'],
@@ -52,6 +56,8 @@ class PluginController extends BaseController
                 return $this->PostPlugin($arguments['payload']);
             case 'PutPlugin':
                 return $this->PutPlugin($arguments['pluginId'], $arguments['payload']);
+            case 'DeletePlugin':
+                return $this->DeletePlugin($arguments['pluginId']);
             case 'GetPlugins':
                 return $this->GetPlugins((int)$arguments['page'], (int)$arguments['perPage'], $arguments['orderBy']);
             default:
@@ -211,5 +217,15 @@ class PluginController extends BaseController
         }
 
         return $plugin;
+    }
+
+    public function DeletePlugin(string $pluginId)
+    {
+        self::ThrowErrorOnInvalidGuid($pluginId, 'Plugin id is malformed.');
+
+        $this->FileRegister->DeleteFiles($pluginId);
+        $this->Register->DeletePlugin($pluginId);
+
+        header('HTTP/1.1 204 No Content');
     }
 }
