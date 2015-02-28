@@ -20,7 +20,7 @@ class PluginController extends BaseController
                     'PUT' => ['method' => 'PutPlugin', 'authentication' => 'PutPlugin']
                 ],
                 'controller' => $this,
-                'documentation' => ['/plugins/{pluginId]' => 'Get info on a specific plugin'],
+                'documentation' => ['/plugins/{pluginId}' => 'Get info on a specific plugin'],
                 'regex' => '/^\/plugins\/[A-z0-9-]{36}$/',
                 'arguments' => [
                     'pluginId' => [
