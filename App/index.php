@@ -2,13 +2,13 @@
     define('SOURCES_ROOT', '/home/www/api.sc4buddy.sexyfishhorse.com/Sources');
     define('CONFIGURATION_FILE', 'configuration.ini');
 
-    $classSources;
+    $classSources = null;
 
     function __autoload($className)
-    {   
+    {
         if($classSources === null)
         {            
-            $classSources = array();
+            $classSources = [];
             
             $iterator = new RecursiveDirectoryIterator(SOURCES_ROOT);
             foreach (new RecursiveIteratorIterator($iterator) as $filename => $file)
@@ -27,4 +27,3 @@
     }
     
     Api::Main();
-?>
