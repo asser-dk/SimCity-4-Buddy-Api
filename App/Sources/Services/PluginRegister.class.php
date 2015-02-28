@@ -65,28 +65,6 @@ class PluginRegister
         $this->AddPluginDependencies($plugin);
     }
 
-    public function IsUrlInUse(string $link, $existingPluginId = null)
-    {
-        if ($existingPluginId == null)
-        {
-            $statement = $this->MySql->prepare('SELECT `Plugin`.`Id` AS `id` FROM `Plugin` WHERE `Plugin`.`Link` = ?');
-            $statement->bind_param('s', $link);
-        }
-        else
-        {
-            $statement = $this->MySql->prepare(
-                'SELECT `Plugin`.`Id` AS `id` FROM `Plugin` WHERE `Plugin`.`Link` = ? AND `Plugin`.`Id` != ?');
-            $statement->bind_param('ss', $link, $existingPluginId);
-        }
-
-        $statement->execute();
-        $statement->bind_result($id);
-        $statement->fetch();
-        $statement->close();
-
-        return $id !== null;
-    }
-
     public function UpdatePlugin(Plugin $plugin)
     {
         $statement = $this->MySql->prepare(
